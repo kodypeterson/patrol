@@ -10,11 +10,13 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.Configurator
+import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.UiObjectNotFoundException
 import androidx.test.uiautomator.UiSelector
+import androidx.test.uiautomator.Until
 import pl.leancode.patrol.contracts.Contracts.KeyboardBehavior
 import pl.leancode.patrol.contracts.Contracts.NativeView
 import pl.leancode.patrol.contracts.Contracts.Notification
@@ -159,7 +161,13 @@ class Automator private constructor() {
     fun tap(uiSelector: UiSelector, bySelector: BySelector, index: Int, timeout: Long? = null) {
         Logger.d("tap(): $uiSelector, $bySelector")
 
-        if (waitForView(bySelector, index, timeout) == null) {
+        waitForView(By.scrollable(true), 0)
+
+        val scrollableUiObject = uiDevice.findObject(By.scrollable(true))
+
+        scrollableUiObject?.scrollUntil(Direction.DOWN, Until.findObject(bySelector))
+
+        if (waitForView(bySelector, index) == null) {
             throw UiObjectNotFoundException("$uiSelector")
         }
 
@@ -223,13 +231,13 @@ class Automator private constructor() {
         Logger.d("entering text \"$text\" to EditText at index $index")
 
         val uiSelector = UiSelector().className(EditText::class.java).instance(index)
-        val uiObject = uiDevice.findObject(uiSelector)
+        var uiObject = uiDevice.findObject(uiSelector)
 
         if (keyboardBehavior == KeyboardBehavior.showAndDismiss) {
             uiObject.click()
         }
 
-        uiObject.text = text
+        uiObject.setText(text) //.text = text
 
         if (keyboardBehavior == KeyboardBehavior.showAndDismiss) {
             pressBack() // Hide keyboard.
@@ -262,7 +270,7 @@ class Automator private constructor() {
             uiObject.click()
         }
 
-        uiObject.text = text
+        uiObject.setText(text) //.text = text
 
         if (keyboardBehavior == KeyboardBehavior.showAndDismiss) {
             pressBack() // Hide keyboard.
@@ -300,6 +308,19 @@ class Automator private constructor() {
         }
 
         delay()
+    }
+
+    fun scrollTo(bySelector: BySelector, index: Int) {
+        Logger.d("scrollTo(): $bySelector")
+
+        waitForView(By.scrollable(true), 0)
+
+        val scrollableSelector = By.scrollable(true)
+
+        val scrollableUiObject = uiDevice.findObject(scrollableSelector)
+                ?: throw UiObjectNotFoundException("$scrollableSelector")
+
+        scrollableUiObject?.scrollUntil(Direction.DOWN, Until.findObject(bySelector))
     }
 
     fun waitUntilVisible(uiSelector: UiSelector, bySelector: BySelector, index: Int, timeout: Long? = null) {
