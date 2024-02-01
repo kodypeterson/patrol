@@ -128,6 +128,13 @@ class SwipeRequest {
   late int steps;
 }
 
+class ScrollToRequest {
+  late Selector selector;
+  late String appId;
+  late int? index;
+  late int? maxIterations;
+}
+
 class WaitUntilVisibleRequest {
   late Selector selector;
   late String appId;
